@@ -1,0 +1,9 @@
+image: nginx
+tag: stable-alpine
+imagePullPolicy: Always
+environment: []
+domain: testdomain.com
+hosts:
+  - test123
+  - test1234
+replicas: 1

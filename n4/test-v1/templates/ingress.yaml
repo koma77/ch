@@ -1,0 +1,21 @@
+{{- $serviceName := .Release.Name -}}
+{{- $val := .Values -}}
+{{- $hosts := .Values.hosts -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  annotations: 
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  
+spec:
+  rules:
+    {{- range $host := .Values.hosts }}
+    - host: {{ $host }}.{{ $val.domain }}
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: {{ $serviceName }}
+            servicePort: 80
+    {{ end }}
+

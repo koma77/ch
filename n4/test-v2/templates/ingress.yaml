@@ -1,0 +1,26 @@
+{{- $serviceName := .Release.Name -}}
+{{- $val := .Values -}}
+{{- $hosts := .Values.hosts -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  annotations: 
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"  
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      if ( $host ~ "^([^.]+).*" ) {
+         return 200 "$1\r\n";
+      }
+
+spec:
+  rules:
+    {{- range $host := .Values.hosts }}
+    - host: {{ $host }}.{{ $val.domain }}
+      http:
+        paths:
+        - path: /
+          backend:
+            serviceName: "the-fake0-one"
+            servicePort: 8899
+    {{ end }}
+

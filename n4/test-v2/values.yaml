@@ -1,0 +1,4 @@
+domain: testdomain.com
+hosts:
+  - test123
+  - test1234

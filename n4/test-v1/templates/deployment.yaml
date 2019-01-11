@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name }}
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicas }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        conf.checksum: {{ .Files.Get "conf/default.conf" | sha256sum }}
+      creationTimestamp: null
+      labels:
+        app: {{ .Release.Name }}
+      name: {{ .Release.Name }}
+    spec:
+      {{- if .Values.serviceAccountToken }}
+      automountServiceAccountToken: true
+      {{- else }}
+      automountServiceAccountToken: false
+      {{- end }}
+      restartPolicy: Always
+      containers:
+      - image: "{{ .Values.image }}:{{ .Values.tag }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        name: {{ .Release.Name }}
+        volumeMounts:
+          - name: conf
+            mountPath: "/etc/nginx/conf.d"
+            readOnly: true
+        env:
+      volumes:
+        - name: conf
+          secret:
+            secretName: {{ .Release.Name }}-conf
