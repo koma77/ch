@@ -36,5 +36,5 @@ spec:
         env:
       volumes:
         - name: conf
-          secret:
-            secretName: {{ .Release.Name }}-conf
+          configMap:
+            name: {{ .Release.Name }}-conf
