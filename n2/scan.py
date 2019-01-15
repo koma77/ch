@@ -59,35 +59,45 @@ def get_vulns(scan):
         return []
     return res
 
-try:
-  images = json.load(sys.stdin)
-except ValueError, e:
-  err(e) 
-  sys.exit(1)
 
-#json.dumps(images)
-#print(json.dumps(images, indent=4, sort_keys=True))
+def get_stdin():
+    try:
+      images = json.load(sys.stdin)
+    except ValueError, e:
+      err(e) 
+      sys.exit(1)
+    return images
 
-res = []
 
-for img in images:
-    org, repo, tag = img["Organisation"], img["Repository"], img["Tag"]
-    #print "{}/{}:{}".format(org, repo, tag)
-    repo_info = get_repo_info(org, repo)
-    if repo_info:
-        if tag in repo_info["tags"]:
-            img_info = repo_info["tags"][tag]
-            img_sha = img_info["manifest_digest"]
-            if img_sha:
-                img.update(Manifest = img_info["manifest_digest"])
-                scan = get_secscan(org, repo, img_sha)
-                vulns = get_vulns(scan)
-                img.update( Vulnerabilities = vulns)
-            res.append(img)
+def img_info(images = None):
+
+    if not images:
+        images =  get_stdin()
+
+    res = []
+
+    for img in images:
+        org, repo, tag = img["Organisation"], img["Repository"], img["Tag"]
+        #print "{}/{}:{}".format(org, repo, tag)
+        repo_info = get_repo_info(org, repo)
+        if repo_info:
+            if tag in repo_info["tags"]:
+                img_info = repo_info["tags"][tag]
+                img_sha = img_info["manifest_digest"]
+                if img_sha:
+                    img.update(Manifest = img_info["manifest_digest"])
+                    scan = get_secscan(org, repo, img_sha)
+                    vulns = get_vulns(scan)
+                    img.update( Vulnerabilities = vulns)
+                res.append(img)
+            else:
+                err("Could not find specified tag: {}/{}:{}".format(org, repo, tag))
         else:
-            err("Could not find specified tag: {}/{}:{}".format(org, repo, tag))
-    else:
-        err("Could not get repo info: {}/{}".format(org, repo))
+            err("Could not get repo info: {}/{}".format(org, repo))
 
-print(json.dumps(res, indent=4, sort_keys=True))
+    return res
+
+
+if __name__ == '__main__':
+    print(json.dumps(img_info(), indent=4, sort_keys=True))
 
